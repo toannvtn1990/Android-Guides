@@ -13,6 +13,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 
 import net.toan.search.R;
 
@@ -20,6 +21,12 @@ public class DictionaryActivity extends AppCompatActivity {
 
     private final String TAG = "DictionaryActivity";
     private SearchManager mSearchManager;
+
+    // bundle key for saving previously selected search result item
+    private static final String STATE_PREVIOUSLY_SELECTED_KEY = "net.toan.search.dictionary.activity.selected_item";
+
+    private String mSearchTern;
+    private ListView mDictionaryListView;
 
     /**
      * Performing a search:
@@ -35,12 +42,19 @@ public class DictionaryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dictionary);
         setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
         mSearchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+
+        mDictionaryListView = (ListView) findViewById(R.id.dictionaryList);
+
         // Receiving the query
         Intent intent = getIntent();
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
             // Searching your data
             Log.d(TAG, "Receiving the query: " + query);
+        }
+
+        if (savedInstanceState != null) {
+            mSearchTern = savedInstanceState.getString(SearchManager.QUERY);
         }
     }
 
@@ -55,6 +69,7 @@ public class DictionaryActivity extends AppCompatActivity {
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
+                    Log.d(TAG, "onQueryTextSubmit: " + query);
                     return true;
                 }
 
@@ -78,9 +93,6 @@ public class DictionaryActivity extends AppCompatActivity {
                         return true;  // Return true to expand action view
                     }
                 };
-
-
-
             });
 
 
@@ -91,5 +103,15 @@ public class DictionaryActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (!TextUtils.isEmpty(mSearchTern)) {
+            // saves the current search string
+            outState.putString(SearchManager.QUERY, mSearchTern);
 
+            // saves the currently selected dictionary
+            outState.putInt(STATE_PREVIOUSLY_SELECTED_KEY, mDictionaryListView.getCheckedItemPosition());
+        }
+    }
 }
